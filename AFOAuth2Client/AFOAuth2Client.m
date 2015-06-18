@@ -34,7 +34,7 @@ NSString * const kAFOAuthRefreshGrantType = @"refresh_token";
 NSString * const kAFOAuthCredentialServiceName = @"AFOAuthCredentialService";
 
 static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifier(NSString *identifier) {
-    NSMutableDictionary *queryDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:(__bridge id)kSecClassGenericPassword, kSecClass, kAFOAuthCredentialServiceName, kSecAttrService, nil];
+    NSMutableDictionary *queryDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:(__bridge id)kSecClassGenericPassword, kSecClass, kAFOAuthCredentialServiceName, kSecAttrService, kSecAttrAccessibleAfterFirstUnlock, kSecAttrAccessible, nil];
     [queryDictionary setValue:identifier forKey:(__bridge id)kSecAttrAccount];
     
     return queryDictionary;
