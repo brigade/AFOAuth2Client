@@ -33,12 +33,23 @@ NSString * const kAFOAuthRefreshGrantType = @"refresh_token";
 #ifdef _SECURITY_SECITEM_H_
 NSString * const kAFOAuthCredentialServiceName = @"AFOAuthCredentialService";
 
+
 static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifier(NSString *identifier) {
     NSMutableDictionary *queryDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:(__bridge id)kSecClassGenericPassword, kSecClass, kAFOAuthCredentialServiceName, kSecAttrService, kSecAttrAccessibleAfterFirstUnlock, kSecAttrAccessible, nil];
+    
     [queryDictionary setValue:identifier forKey:(__bridge id)kSecAttrAccount];
     
     return queryDictionary;
 }
+
+static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSString *identifier) {
+    NSMutableDictionary *queryDictionaryDefault = [NSMutableDictionary dictionaryWithObjectsAndKeys:(__bridge id)kSecClassGenericPassword, kSecClass, kAFOAuthCredentialServiceName, kSecAttrService, nil];
+    
+    [queryDictionaryDefault setValue:identifier forKey:(__bridge id)kSecAttrAccount];
+    
+    return queryDictionaryDefault;
+}
+
 #endif
 
 #pragma mark -
@@ -331,6 +342,36 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifier(NSString *i
     
     CFDataRef result = nil;
     OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)queryDictionary, (CFTypeRef *)&result);
+    
+    if (status == errSecItemNotFound) {
+        NSLog(@"Unable to find credential with identifier \"%@\" (Error %li)", identifier, (long int)status);
+        
+        // fetch old credential
+        NSMutableDictionary *queryDictionaryDefault = AFKeychainQueryDictionaryWithIdentifierDefault(identifier);
+        [queryDictionaryDefault setObject:(__bridge id)kCFBooleanTrue forKey:(__bridge id)kSecReturnData];
+        [queryDictionaryDefault setObject:(__bridge id)kSecMatchLimitOne forKey:(__bridge id)kSecMatchLimit];
+        
+        CFDataRef resultDefault = nil;
+        OSStatus statusForDefault = SecItemCopyMatching((__bridge CFDictionaryRef)queryDictionaryDefault, (CFTypeRef *)&resultDefault);
+        
+        if (statusForDefault != errSecSuccess) {
+            NSLog(@"Unable to fetch default credential with identifier \"%@\" (Error %li)", identifier, (long int)status);
+            return nil;
+        }
+        
+        NSMutableDictionary *updateDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:(__bridge id)kSecAttrAccessibleAfterFirstUnlock, kSecAttrAccessible, nil];
+        NSMutableDictionary *updateQueryDictionaryDefault = AFKeychainQueryDictionaryWithIdentifierDefault(identifier);
+        OSStatus updateStatus = SecItemUpdate((__bridge CFDictionaryRef)updateQueryDictionaryDefault, (__bridge CFDictionaryRef)updateDictionary);
+        
+        if (updateStatus != errSecSuccess) {
+            NSLog(@"Unable to store default credential with identifier \"%@\" (Error %li)", identifier, (long int)updateStatus);
+        }
+        
+        NSData *defaultData = (__bridge_transfer NSData *)resultDefault;
+        
+        AFOAuthCredential *defaultCredential = [NSKeyedUnarchiver unarchiveObjectWithData:defaultData];
+        return defaultCredential;
+    }
     
     if (status != errSecSuccess) {
         NSLog(@"Unable to fetch credential with identifier \"%@\" (Error %li)", identifier, (long int)status);
