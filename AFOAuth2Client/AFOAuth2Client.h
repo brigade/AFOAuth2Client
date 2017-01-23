@@ -194,6 +194,11 @@
 @property (readonly, nonatomic) NSString *refreshToken;
 
 /**
+ The OAuth scope
+ */
+@property (readonly, nonatomic) NSString *scope;
+
+/**
  Whether the OAuth credentials are expired.
  */
 @property (readonly, nonatomic, assign, getter = isExpired) BOOL expired;
@@ -241,6 +246,17 @@
  */
 - (void)setRefreshToken:(NSString *)refreshToken
              expiration:(NSDate *)expiration;
+
+///----------------------------
+/// @name Setting Scope
+///----------------------------
+
+/**
+ Sets the scope parameter.
+
+ @param scope The scope of the OAuth token.
+ */
+- (void)setScope:(NSString *)scope;
 
 ///-----------------------------------------
 /// @name Storing and Retrieving Credentials
