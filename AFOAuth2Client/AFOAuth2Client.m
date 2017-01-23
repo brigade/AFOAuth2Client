@@ -210,7 +210,8 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
         }
         
         [credential setRefreshToken:refreshToken expiration:expireDate];
-        
+        [credential setScope:[responseObject valueForKey:@"scope"]];
+
         [self setAuthorizationHeaderWithCredential:credential];
         
         if (success) {
@@ -232,15 +233,16 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
 @property (readwrite, nonatomic) NSString *accessToken;
 @property (readwrite, nonatomic) NSString *tokenType;
 @property (readwrite, nonatomic) NSString *refreshToken;
+@property (readwrite, nonatomic) NSString *scope;
 @property (readwrite, nonatomic) NSDate *expiration;
 @property (readwrite, nonatomic) NSDictionary *authorizationResponse;
-
 @end
 
 @implementation AFOAuthCredential
 @synthesize accessToken = _accessToken;
 @synthesize tokenType = _tokenType;
 @synthesize refreshToken = _refreshToken;
+@synthesize scope = _scope;
 @synthesize expiration = _expiration;
 @synthesize authorizationResponse = _authorizationResponse;
 @dynamic expired;
@@ -283,6 +285,10 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     
     self.refreshToken = refreshToken;
     self.expiration = expiration;
+}
+
+- (void)setScope:(NSString *)scope {
+    _scope = scope;
 }
 
 - (BOOL)isExpired {
@@ -394,6 +400,7 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     self.tokenType = [decoder decodeObjectForKey:@"tokenType"];
     self.refreshToken = [decoder decodeObjectForKey:@"refreshToken"];
     self.expiration = [decoder decodeObjectForKey:@"expiration"];
+    self.scope = [decoder decodeObjectForKey:@"scope"];
     
     return self;
 }
@@ -403,6 +410,7 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     [encoder encodeObject:self.tokenType forKey:@"tokenType"];
     [encoder encodeObject:self.refreshToken forKey:@"refreshToken"];
     [encoder encodeObject:self.expiration forKey:@"expiration"];
+    [encoder encodeObject:self.scope forKey:@"scope"];
 }
 
 @end
