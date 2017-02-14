@@ -116,6 +116,7 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
                                    username:(NSString *)username
                                    password:(NSString *)password
                                       scope:(NSString *)scope
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure
 {
@@ -126,12 +127,13 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     [mutableParameters setValue:password forKey:@"password"];
     [mutableParameters setValue:scope forKey:@"scope"];
     NSDictionary *parameters = [NSDictionary dictionaryWithDictionary:mutableParameters];
-    
-    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters success:success failure:failure];
+
+    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters headers:headers success:success failure:failure];
 }
 
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                       scope:(NSString *)scope
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure
 {
@@ -139,12 +141,13 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     [mutableParameters setObject:kAFOAuthClientCredentialsGrantType forKey:@"grant_type"];
     [mutableParameters setValue:scope forKey:@"scope"];
     NSDictionary *parameters = [NSDictionary dictionaryWithDictionary:mutableParameters];
-    
-    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters success:success failure:failure];
+
+    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters headers:headers success:success failure:failure];
 }
 
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                refreshToken:(NSString *)refreshToken
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure
 {
@@ -152,13 +155,14 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     [mutableParameters setObject:kAFOAuthRefreshGrantType forKey:@"grant_type"];
     [mutableParameters setValue:refreshToken forKey:@"refresh_token"];
     NSDictionary *parameters = [NSDictionary dictionaryWithDictionary:mutableParameters];
-    
-    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters success:success failure:failure];
+
+    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters headers:headers success:success failure:failure];
 }
 
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                        code:(NSString *)code
                                 redirectURI:(NSString *)uri
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure
 {
@@ -167,12 +171,13 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     [mutableParameters setValue:code forKey:@"code"];
     [mutableParameters setValue:uri forKey:@"redirect_uri"];
     NSDictionary *parameters = [NSDictionary dictionaryWithDictionary:mutableParameters];
-    
-    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters success:success failure:failure];
+
+    [self authenticateUsingOAuthWithURLString:urlString parameters:parameters headers:headers success:success failure:failure];
 }
 
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                  parameters:(NSDictionary *)parameters
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure
 {
@@ -180,11 +185,17 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
     [mutableParameters setObject:self.clientID forKey:@"client_id"];
     [mutableParameters setValue:self.secret forKey:@"client_secret"];
     parameters = [NSDictionary dictionaryWithDictionary:mutableParameters];
-    
+
     self.requestSerializer = [AFHTTPRequestSerializer serializer];
-    
+
     NSMutableURLRequest *mutableRequest = [self.requestSerializer requestWithMethod:@"POST" URLString:urlString parameters:parameters];
     [mutableRequest setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [headers enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+        if ([obj isKindOfClass:[NSString class]] && [obj isKindOfClass:[NSString class]]) {
+            [mutableRequest setValue:obj forHTTPHeaderField:key];
+        }
+    }];
+
     AFHTTPRequestOperation *requestOperation = [self HTTPRequestOperationWithRequest:mutableRequest success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if ([responseObject valueForKey:@"error"]) {
             if (failure) {
@@ -249,20 +260,20 @@ static NSMutableDictionary * AFKeychainQueryDictionaryWithIdentifierDefault(NSSt
 
 + (instancetype)credentialWithOAuthToken:(NSString *)token
                                tokenType:(NSString *)type
-								response:(NSDictionary*)response
+                                response:(NSDictionary*)response
 {
     return [[self alloc] initWithOAuthToken:token tokenType:type response:response];
 }
 
 - (id)initWithOAuthToken:(NSString *)token
                tokenType:(NSString *)type
-				response:(NSDictionary*)response
+                response:(NSDictionary*)response
 {
     self = [super init];
     if (!self) {
         return nil;
     }
-    
+
     self.accessToken = token;
     self.tokenType = type;
     self.authorizationResponse = response;
