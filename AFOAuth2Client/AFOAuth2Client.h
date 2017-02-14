@@ -106,12 +106,13 @@
                                    username:(NSString *)username
                                    password:(NSString *)password
                                       scope:(NSString *)scope
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure;
 
 /**
  Creates and enqueues an `AFHTTPRequestOperation` to authenticate against the server with a designated scope.
- 
+
  @param urlString The string to be appended to the HTTP client's base URL and used as the request URL.
  @param scope The authorization scope
  @param success A block object to be executed when the request operation finishes successfully. This block has no return value and takes a single argument: the OAuth credential returned by the server.
@@ -119,12 +120,13 @@
  */
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                       scope:(NSString *)scope
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure;
 
 /**
  Creates and enqueues an `AFHTTPRequestOperation` to authenticate against the server using the specified refresh token.
- 
+
  @param urlString The string to be appended to the HTTP client's base URL and used as the request URL.
  @param refreshToken The OAuth refresh token
  @param success A block object to be executed when the request operation finishes successfully. This block has no return value and takes a single argument: the OAuth credential returned by the server.
@@ -132,12 +134,13 @@
  */
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                refreshToken:(NSString *)refreshToken
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure;
 
 /**
  Creates and enqueues an `AFHTTPRequestOperation` to authenticate against the server with an authorization code, redirecting to a specified URI upon successful authentication.
- 
+
  @param urlString The string to be appended to the HTTP client's base URL and used as the request URL.
  @param code The authorization code
  @param redirectURI The URI to redirect to after successful authentication
@@ -147,12 +150,13 @@
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                        code:(NSString *)code
                                 redirectURI:(NSString *)uri
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure;
 
 /**
  Creates and enqueues an `AFHTTPRequestOperation` to authenticate against the server with the specified parameters.
- 
+
  @param urlString The string to be appended to the HTTP client's base URL and used as the request URL.
  @param parameters The parameters to be encoded and set in the request HTTP body.
  @param success A block object to be executed when the request operation finishes successfully. This block has no return value and takes a single argument: the OAuth credential returned by the server.
@@ -160,6 +164,7 @@
  */
 - (void)authenticateUsingOAuthWithURLString:(NSString *)urlString
                                  parameters:(NSDictionary *)parameters
+                                    headers:(NSDictionary *)headers
                                     success:(void (^)(AFOAuthCredential *credential))success
                                     failure:(void (^)(NSError *error))failure;
 
@@ -211,23 +216,23 @@
 
 /**
  Create an OAuth credential from a token string, with a specified type.
- 
+
  @param token The OAuth token string.
  @param type The OAuth token type.
  */
 + (instancetype)credentialWithOAuthToken:(NSString *)token
                                tokenType:(NSString *)type
-								response:(NSDictionary*)response;
+                                response:(NSDictionary*)response;
 
 /**
  Initialize an OAuth credential from a token string, with a specified type.
- 
+
  @param token The OAuth token string.
  @param type The OAuth token type.
  */
 - (id)initWithOAuthToken:(NSString *)token
                tokenType:(NSString *)type
-				response:(NSDictionary*)response;
+                response:(NSDictionary*)response;
 
 ///----------------------------
 /// @name Setting Refresh Token
